@@ -12,8 +12,8 @@ import streamlit as st
     #import requests
     #from bs4 import BeautifulSoup
 #except Exception:  # offline/local env without optional deps
-    requests = None
-    BeautifulSoup = None
+requests = None
+BeautifulSoup = None
 
 APP_TITLE = "Gluten Kontrol"
 SOURCE_URL = "https://colyak.org.tr/glutensiz-urunler/"
