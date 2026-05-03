@@ -8,10 +8,10 @@ import unicodedata
 import pandas as pd
 import streamlit as st
 
-try:
-    import requests
-    from bs4 import BeautifulSoup
-except Exception:  # offline/local env without optional deps
+#try:
+    #import requests
+    #from bs4 import BeautifulSoup
+#except Exception:  # offline/local env without optional deps
     requests = None
     BeautifulSoup = None
 
