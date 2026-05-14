@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gluten Kontrol">
+<meta name="theme-color" content="#2d6a4f">
+<title>🌾 Gluten Kontrol</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --green:#2d6a4f;--green-light:#52b788;--green-pale:#d8f3dc;
+    --red:#c0392b;--red-pale:#fdecea;
+    --amber:#d68910;--amber-pale:#fef9e7;
+    --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--bg:#f9fafb;--white:#ffffff;
+    --radius:12px;--radius-sm:8px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+  header{background:var(--green);color:#fff;padding:16px 20px 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  header h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  header p{font-size:12px;opacity:.8;margin-top:2px}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:60px;z-index:99}
+  .tab{flex:1;padding:12px 4px;text-align:center;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+  .tab.active{color:var(--green);border-bottom-color:var(--green)}
+  .panel{display:none;padding:16px}
+  .panel.active{display:block}
+  input,textarea,select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:#fff;color:var(--text);outline:none;transition:border .2s;-webkit-appearance:none}
+  input:focus,textarea:focus,select:focus{border-color:var(--green)}
+  label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;margin-top:16px}
+  label:first-child{margin-top:0}
+  .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:14px}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600}
+  .badge-ok{background:var(--green-pale);color:var(--green)}
+  .badge-no{background:var(--red-pale);color:var(--red)}
+  .badge-warn{background:var(--amber-pale);color:var(--amber)}
+  .result-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .result-row:last-child{border-bottom:none}
+  .result-cat{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+  .result-name{color:var(--text);font-weight:500}
+  .warn-box{background:var(--amber-pale);border:1px solid #f0d580;border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:#856404;margin-top:12px;line-height:1.5}
+  .err-box{background:var(--red-pale);border:1px solid #f1b0aa;border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--red);margin-top:12px;line-height:1.5}
+  .ok-box{background:var(--green-pale);border:1px solid #95d5b2;border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--green);margin-top:12px;line-height:1.5}
+  .count{font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .risk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{background:var(--red-pale);color:var(--red);font-size:12px;padding:3px 9px;border-radius:12px;font-weight:500}
+  .footer{text-align:center;font-size:11px;color:var(--muted);padding:20px 16px 8px;line-height:1.6}
+  .install-banner{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
+  .install-banner .icon{font-size:20px;flex-shrink:0;margin-top:1px}
+  .install-banner p{font-size:12px;color:var(--muted);line-height:1.5}
+  .install-banner strong{color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Gluten Kontrol</h1>
+  <p>Çölyak hastaları için güvenli ürün listesi · offline çalışır</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('search')">🔍 Ara</button>
+  <button class="tab" onclick="switchTab('browse')">📂 Kategoriler</button>
+  <button class="tab" onclick="switchTab('risk')">⚠️ Risk Kontrol</button>
+</div>
+
+<div id="panel-search" class="panel active">
+  <div class="install-banner" id="installBanner" style="display:none">
+    <div class="icon">📲</div>
+    <p><strong>Ana ekrana ekle:</strong> Tarayıcı menüsünden "Ana Ekrana Ekle" seçeneğiyle uygulamayı internetsiz kullanabilirsin.</p>
+  </div>
+  <input type="search" id="searchInput" placeholder="Ürün veya marka ara… (örn: Balparmak, peynir)" oninput="doSearch(this.value)" autocomplete="off" autocorrect="off">
+  <div id="searchResults"></div>
+</div>
+
+<div id="panel-browse" class="panel">
+  <label>Kategori</label>
+  <select id="catSelect" onchange="loadCategory()">
+    <option value="">— Kategori seçin —</option>
+  </select>
+  <label id="prodLabel" style="display:none">Ürün / Marka</label>
+  <select id="prodSelect" style="display:none" onchange="showProduct()">
+    <option value="">— Ürün seçin —</option>
+  </select>
+  <div id="productCard"></div>
+</div>
+
+<div id="panel-risk" class="panel">
+  <p style="font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.5">Ürünün ambalajındaki içindekiler veya alerjen uyarısını buraya yaz:</p>
+  <textarea id="ingInput" rows="5" placeholder="Örn: mısır unu, pirinç unu, eser miktarda buğday içerebilir…" oninput="doRisk()"></textarea>
+  <div id="riskResult"></div>
+</div>
+
+<div class="footer">
+  Bu uygulama tıbbi karar yerine geçmez.<br>
+  Belirsiz ürünlerde etiket ve üretici teyidi alın.<br>
+  Kaynak: Çölyakla Yaşam Derneği · 2026
+</div>
+
+<script>
+const PRODUCTS = {"ATIŞTIRMALIK": ["Agrotalya Haşlanmış Tatlı Mısır", "Agrotalya Haşlanmış Pancar", "Ayla’dan Tatlar Çikolatalı, Hindistan Cevizli, Haşhaşlı, Susamlı Toplar", "Aypop Meyve Aromalı Patlamış Mısır", "Bake Home (Glutenon) Simit, Zencefilli Kurabiye, Peppar Kakor", "Burbella Hindistan Cevizli Bisküvi", "Burbella Susamlı Kraker", "Burbella Glutensiz Su Böreği", "Burbella Glutensiz Tavas Baklavası", "Canbis (BURCH) Mısır ve Pirinç Patlağı", "Cinnamon Chex tarçinli Atiştirmalik", "Çipo Barbekü Aromalı Pirinç Patlağı", "Çipo Peynir, Soğan Aromalı Pirinç Patlağı", "Çipo Zeytin Kekik Aromalı Pirinç Patlağı", "Çipo Sirke Aromalı Pirinç Patlağı", "Dovido Çekirdekli Antep Karası", "Dovido Medjoul Hurma", "Dovido Kuru Erik", "Dovido Çekirdeksiz Kuru Üzüm", "Dovido Berry Mix", "Dovido Meyve Mix", "Dovido Kuru İncir", "Dovido Cranberry (Turna Yemişi)", "Eti Pronot Bisküvi Çeşitleri Zeytinli, Portakalli, Kakaolu ve Sade kurabiyeleri ve Kakaolu Mini Keki", "Fasico Antep Fıstık Ezmeli Toplar", "Fasico Ceviz Ezmeli Toplar", "Fasico Kuru Meyveli Kurabiye", "Fasico Bruschetta Domatesli", "Fasico Bruschetta Sebzeli", "Farmer’s Snack Mango, Kokos, Exotic, ve Berry ürünler", "Fitcuit Amarant Gevreği", "Fitcuit Greçka Mix Bar", "Fitcuit Karabuğday Gevreği", "Fitcuit Kahverengi Pirinç Gevreği", "Fitcuit Koko Kahvaltı Gevreği", "Fitcuit Priye Kahvaltı Gevreği", "Fitcuit Mayka Kahvaltı Gevreği", "Glutensiz Ada Susamlı Çubuk Kraker, Tuzlu Kraker, Baharatlı Kraker, Damalı Kraker, Fındıklı Kurabiye, Kahveli Kurabiye", "Good Cops Keçiboynuzlu Mısır Gevreği", "Granmillo Chia Tohumlu Tahıllı Pirinç Patlağı", "Granmillo Keten Tohumlu Tahıllı Pirinç Patlağı", "Granmillo Kara Pirinçli Tahıllı Pirinç Patlağı", "Granmillo Kırmızı Pirinçli Tahıllı Pirinç Patlağı", "Gullon Damla Çikolatali, Kakaolu ve sade bisküvileri", "HiPP organik Bebek Gofreti Pirinç Patlaği Elmali ve Böğürtlenli", "Hünnap Keçi Sütlü Kahvaltı Gevreği", "İngro Gıda Karadut", "İngro Gıda Portakal Kabuğu Kurusu", "Kale Pestil Köme, Cevizli, Fındıklı, Dut Pestili, Pestil Tatlısı", "KURME BAR Chia, Orange, Coconut, Gojiberryli Barlar", "Levom Vişne Tart Bar", "Levom Kayısı Fındık Bar", "Levom Kakao Portakal Bar", "Levom Hurma Kaju Bar", "Levom İncir Ceviz Bar", "Levom Hurma Ceviz Bar", "Mayalıhane Kek ve Bisküvileri", "M&S Marks&Spencer Glutensiz Kraker", "Mina Glutensiz Karışık Kurabiye", "Mina Glutensiz Karışık Çubuk", "Mina Glutensiz Tatlı Kavala Kurabiye", "Mina Glutensiz Damla Çikolatalı Kurabiye", "Mixmey Meyve Barları Böğürtlen, Çilek, Erik, Kayısı, Hurma, Şeftali ve Vişne", "Naturpy Çıtır Toplar", "Naturpy Fındık Krema Dolgulu Gevrek", "Naturpy Mısır Gevreği Corn Flakes", "Naturpy Kinoa Patlağı", "Naturpy Pynut Kakaolu Pirinç Patlağı", "Naturpy Pynut Sade Pirinç Patlağı", "Naturpy Taco Soslu Gevrek", "Naturpy Allerbebe Bebek Krakeri-Keçiboynuzlu", "Naturpy Allerbebe Bebek Krakeri-Dutlu", "Nk Kurabiye", "Nk Galeta", "Neka Muffin Kek", "Nog mısır gevreği", "Nog tahini cookies", "Nog susamli çubuk kraker", "Nog Karabuğday Tane", "Nog Portakallı Kurabiye", "Nustil Hazır Kahvaltılık Kinoa+Teff+Chia", "Nustil Organik Kinoa Gevreği", "Nustil Organik Gevrekler Karışımı", "Nustil Teff Gevreği", "Nustil Organik Karabuğday Gevreği", "Nustil Susamlı Çubuk Kraker", "Oranca Glutensiz Çitir Kraker/Ekmek", "Orgran Glutensiz Bisküvileri", "Quru kurutulmuş ürünler", "Pol’s Kurutulmuş Böğürtlen, Çilek, Elma, Limon, Mısır, Portakal ve Vişne", "Rawberry Cacao, Rawberry Pistachio, Rawberry Goji Berry, Rawberry Peanuts, Rawberry Hazelnut", "Rawsome Fruit&Nuts Bar", "Rocky Rice Sütlü Çikolatali Pirinç Patlaği", "Sante01 Karabuğdaylı Zerdeçallı Atıştırmalık", "Sante01 Glutensiz Fıstık Aşkı Doğum Günü Pastası", "Sante01 Glutensiz Karışık Pizza", "Sante01 Glutensiz Hamburger Ekmeği", "Seferoğlu Glutensiz Unlu Mamülleri", "Schar Tüm ürünleri", "Ta!da! Bisküvi", "Ta!da! Hindistancevizli Kurabiye", "Ta!da! Ispanaklı ince Gevrek", "Ta!da! Karabuğdaylı Grissini", "Ta!da! Peynirli Dereotlu Mini Kraker", "Ta!da! Pizza Aromalı İnce Gevrek", "Ta!da! Zerdeçallı İnce Gevrek", "Ta!da! Peynirli Soğanlı Ekmek Cipsi", "Ta!da! Ballı Hardallı Cips", "Tahinly Tarsus Çöreği", "Tahinly Karışık Kurabiye", "Tahinly Tahıllı Kraker", "Thin Think High Protein Bar", "Thin Think Pirinç Krakeri", "Tivoli Damla Çikolatalı Bisküvi", "Vak-Mak 2’li koçanda Mısır", "Vak-Mak Pancar Haşlanmış Soyulmuş Rendelenmiş", "Yağcıoğlu Pastaneleri Glutensiz Ürünleri"], "AYRAN": ["Aynes", "Bakraç", "Çayirova", "Dalgiçlar", "Eker", "İtimat", "Kebir", "Otat", "Özgüllü", "Pınar", "Sakipağa", "Saklı Cennet Keçi Ayranı", "Sek", "Sütas", "Tire Süt", "Yörsan", "Yörükoğlu"], "BADEM UNU": ["Ambar Evim Badem Unu", "Güzel Gıda Badem Unu", "İngro Gıda Badem Unu", "Wefood Badem Unu"], "BAHARATLAR": ["Bağdat Baharat (Karışımlar, Köfte Baharı ve Köri dışındaki baharatlar)"], "BAL": ["Anavarza Bal", "Balparmak", "Binboğa Balı (Çam Balı, Çiçek Balı, Keven&Kekik Balı)", "Saklı Cennet Bal", "TKV Bal"], "BALIK": ["Süperfresh", "Dardanel Bitkisel Yağlı Ton, Zeytinyağlı Ton, Light Ton, Gurme Ton, Somon, Mısırlı Ton, Fasulyeli Ton, Hamsi, Uskumru, Sardalya", "DenizEv Glutensiz Alaska Mezgiti ve Glutensiz Cod", "Kaptan Memo", "Ton Ton Balik", "Tonkinos Ton Acili Acisiz", "Troya Ton"], "BOZA": ["Balaban Boza", "Vefa Bozacisi (Glutensiz etiketi olan)"], "CHİA TOHUMU": ["Güzel Gıda Chia Tohumu", "Nustil Chia Tohumu", "Wefood Beyaz, Siyah Chia ve Chia unu"], "CİPSLER": ["Crunch Wavy Deniz Tuzlu Nohut Cipsi", "Crunch Wavy Yoğurt ve Mevsim Yeşillikli Nohut Cipsi", "Crunch Wavy Ketçap Aromalı Nohut Cipsi", "Crunch Wavy Spicy Aromalı Nohut Cipsi", "Crunch Wavy Avokado Aromalı Nohut Cipsi", "Çitir Elma Elmataş", "Lafiesta salsa medium 315g", "Lafiesta salsa questo 300g", "La fiesta salsa cheddar cheese 3000g", "Lafiesta salsa guacamole 300g", "Lafiesta taco shells 12 pcs", "Nachos Chips Casa Fiesta", "Nustil Kinoa Cipsi", "Patisswiss Acı Biber aromalı Nohut Cipsi", "Patisswiss Puff Nohut Cipsi", "Poco Loco Nacho Cipsi", "Poco Loco Tortilla Cipsi", "Samai Cips çeşitleri"], "ÇİKOLATA": ["Aroha Antep Fıstıklı Bitter Çikolata", "Aroha Hurma Özlü Çikolata", "Aroha Bitter Sade Çikolata", "Aroha Stevia Sütlü Çikolata", "Aroha Stevia Beyaz Çikolata", "Aroha Stevia Bitter Çikolata", "Aroha Sütlü Fındıklı Çikolata", "Elit Şeker İlavesiz Prebiyotik Sütlü Çikolata", "Elit Şeker İlavesiz Bitter Tablet Çikolata", "Elit (Etiket içerik bilgisi okunmalı)", "Frankonia", "Green Dream Bitter Çikolata çeşitleri", "Gürsoy Çikolata Kaplı Fındık Draje", "Güzel ada gıda Organik ham çikolata %70", "Güzel ada gıda Organik ham çikolata %75", "Kinder Surprise, Kinder Chocolate, Kinder Chocolate Maxi", "Naturpy Beyoğlu Sütlü Antep Fıstıklı Chocolate", "Naturpy Sütlü Chocolate", "Dr.Gluten çikolata çeşitleri", "Nussknacker", "Patisswiss Sütlü Çikolata", "Pernigotti çeşitleri", "Tadelle çeşitleri", "Toblerone", "Vie Life Çikolata", "Chocolat Stella Chili ve Baobab Fruit", "Mabel Sütlü, Bitter, Beyaz Çikolata"], "DAMLA ÇİKOLATA": ["Callebaut Dikkat allerjen uyarısı olarak GLUTEN yazmıyorsa kullanınız", "Mabel"], "ÇİKOLATA SOSU": ["Dr.Oetker Glutensiz Çikolata Sosu", "Pınar Kakaolu sos"], "DOMATES ÜRÜNLERİ": ["Kilye", "Tat domates püresi", "Tat domates rendesi", "Tat domates suyu çeşitleri", "Trilye", "Tukaş Rendelenmiş Domates"], "DONDURMA": ["Alpedo Sade Dondurma", "Atatürk Orman Çiftliği Dondurması", "Bolulu Hasan Usta LASIDO/DOSIDO/Bandollar", "Dalgiçlar", "Dondo Hayal Sade ve Çikolatalı", "Golf Royal Gurme Bodrum Mandalinası", "Kechy Kapta çeşitleri", "Kechy ArtStick çeşitleri", "Mado Dondurması çeşitleri", "Magnum After Dinner Dondurması", "Oba Sade Dondurma", "Serez Dondurma"], "DONDURMA KÜLAHI": ["GÖKKUŞAĞI GLUTENSIZ Dondurma Külahi"], "DONDURULMUŞ SEBZELER": ["Superfresh dondurulmuş sossuz sade patates, sebze-meyve ürünleri"], "DÖNER": ["ERPİLİÇ TAVUK Döner", "Tire Süt Döner"], "HAMBURGER KÖFTESİ": ["Aytaç Şef Burger"], "EKMEKLER": ["Ankara Büyükşehir Belediyesi Glutensiz MET-VAK Ekmeği", "Backhaus Glutensiz Ekmekleri", "Bezgluten Ekmekleri", "Denizli ATA Fırın Burbella Glutensiz Beyaz Ekmeği", "Burbella Glutensiz Mini Baget, Bazlama, Lavaş", "Dr. Ekmek Glutensiz Ekmekleri", "Ege Glutensiz Ekmeği", "Eskisehir Hemsin Ekmek Firini Glutensiz Ekmeği", "Glutensiz Ada 216 Ekmeği", "Istanbul Büyükşehir Belediyesi Glutensiz İHE Ekmeği", "Izmir Büyükşehir Belediyesi Glutensiz KENT EKMEK", "Mader glutensiz ekmek", "Mayaköy Karabuğday Ekmeği", "Mayalıhane Ekmeği", "M Life Glutensiz Ekmeği", "Nk Glutensiz Ekmek", "Rolla Hamburger ekmeği, Hot Dog ekmeği, RollaBagel, Rolla Bazlama, Rolla Simit", "Sante01 Glutensiz Hamburger Ekmeği", "Schar Glutensiz Ekmek çeşitleri", "Seferoğlu Glutensiz Unlu Mamülleri", "Sofra Glutensiz Ekmeği"], "EKMEK ÜSTÜ ÇİKOLATA EZME VE KREMALAR": ["Aroha Çikolatalı Ballı Fındık Kreması", "Aroha Çikolatalı Hurmaözlü Fındık Kreması", "Aroha Çikolatalı Şekerli Fındık Kreması", "Aroha Stevia Çikolatalı Fındık Kreması", "Babamın Bahçesi Ballı Fıstık Ezmesi", "EGE Glutensiz Keçi Boynuzu Ezmesi", "Findux Kakaolu Fındık Kreması", "Gürsoy Ballı Fındık Ezmesi", "Gürsoy Findik Kremasi Sütlü, Kakaolu", "Ladin Organics Ay Çekirdeği Ezmesi", "Ladin Organics Badem Ezmesi", "Ladin Organics Fıstık Ezmesi", "Koska Findik Kremasi", "Naturpy Vanilyalı Keçiboynuzu Ezmesi", "Naturpy Hurmella Çikolatalı Keçiboynuzu Ezmesi", "Nocciolata organik ve glutensiz Sütlü Kakaolu Findik Kremasi", "Nutella", "Sarelle çeşitleri", "Tadıbu Kakaolu Fındık Kreması"], "LOR": ["Bakraç Lor", "Baltali Keçi Loru", "Çayirova", "Gürsüt", "Kaanlar", "Muratbey", "Sakipağa", "Tahsildaroğlu", "Yörsan", "Yörükoğlu"], "LOKUM": ["Abdurrahman Tatlıcı Antep Fıstıklı Sultan Lokum", "Altinay Lokum", "Ogas Sekerleme Kus Lokumu", "Koska Saray Lokumu, Sultan Lokumu", "Mevlevi Tatlisi", "Nar Gourmet Lokumu", "Tariş incir Lokumu", "Uzungil Lokum"], "MAKARNALAR": ["Arbella Glutensiz", "Balviten", "Barilla Glutensiz", "Beşler Glutensiz", "Bez-gluten", "Bi-aglut", "Golda Cincik Makarna", "Legume Mısır Makarnası", "Legume Kırmızı, Sarı, Yeşil Mercimek Makarnası", "Legume Nohut Makarnası", "Mader", "Nuhun Ankara Makarnası Glutensiz", "Pastavilla Glutensiz Bezelyeli Makarna", "Rustichella esmer pirinçli makarna ve bezelyeli makarnaları", "Schar", "Talya Foods TMS Organik Karabuğday Unlu Makarnası", "Tas Pirinç Makarnasi"], "MAKARNA SOSLARI": ["Barilla Arrabiata Sos", "Barilla Napolitana sos", "Barilla Peynirli Cevizli sos", "Pastavilla Meksikan Sos", "Pastavilla Napoliten Sos"], "MAYA": ["Dr. Oetker Maya (Paket arkasında Gluten İçermez yazılı olan)", "Kenton Maya", "Pakmaya", "Yayla Peynir, Yoğurt, Probiyotik Yoğurt ve Kefir Mayaları", "Yuva Maya"], "MEYVE SULARI": ["Aroma", "Capy", "Didi Ice Tea", "Elite Naturel", "Exotic", "Isola Bio içecekleri", "Juss", "Lipton ice Tea", "Pinar", "Sade Organik Meyve Sulari", "Sek", "Tamek", "Tat", "Yörsan", "Zumosol"], "MISIR NİŞASTASI": ["Dr.Oetker Glutensiz Mısır Nişastası", "Ege Glutensiz Misir Nişastasi", "Golda Mısır Nişastası"], "MISIR UNU": ["Ambar Evim Mısır Unu", "Bağdat Misir Unu", "Ege Glutensiz Mısır İrmiği", "Golda Mısır Bulguru, Unu ve İrmiği", "Mader Mısır Bulguru Unu ve İrmiği", "Organik Bahçe Organik Glutensiz Misir Unu"], "KAHVE": ["Cezbeli-Selamlique Türk Kahveleri", "Kurukahveci Mehmet Efendi", "Shazili Sade, Orta, Şekerli", "Fiero 3’ü bir arada", "Fiero Sıcak Çikolata", "Fiero Cappuccino", "Fiero Kahve Beyazlatıcı", "Nespresso kahve çeşitleri", "Simon Levelt Organik Filtre Kahve çeşitleri"], "KAKAO": ["Dr.Oetker Glutensiz Kakao", "Fiero Toz Esmer Kakao", "Güzel Gıda Organik Ham Kakao Parçacıkları", "Güzel Gıda Organik Ham Kakao", "Güzel Gıda Organik Kakao Yağı", "Kuru Kahveci Mehmet Efendi Kakao", "Mabel Kakao", "Mina Kakao", "Nestle üzerini okuyarak"], "KEFİR": ["Altınkılıç Sade, Çilekli, Ballı, Muzlu, Yaban Mersinli, Orman Meyveli, Light, Sade Laktozsuz Kefir", "Atatürk Orman Çiftliği", "Danem", "Eker", "Itimat", "Sakipağa", "Saklı Cennet", "Sek", "Yörsan"], "KETÇAP": ["Heinz Ketçap", "Pınar Ketçap", "Tat Ketçap"], "KONSERVELER": ["Penguen Konserve", "Tamek Sebze ve Bakliyat Konserveleri", "Tat Konservesi", "Tukaş Bezelye Konservesi", "Tukaş Sultani Bamya Konservesi", "Tukaş Taze Fasulye Konservesi", "Tukaş Börülce Konservesi", "Tukaş Enginar Konservesi", "Tukaş Garnitür Konservesi", "Tukaş Mısır Konservesi", "Öncü Közlenmiş Biber"], "KURUYEMİŞ": ["Arzu Kuruyemiş Glutensiz çeşitleri", "Çerezcim Kuruyemiş Glutensiz çeşitleri", "Çereztabağı Kuruyemiş Glutensiz çeşitleri", "Dovido Kurutulmuş Ananas", "Dovido Kurutulmuş Mango", "Dovido Kurutulmuş Papaya", "Dovido Gün Kurusu", "Gürsoy Tuzlu Kabuklu Fındık", "Peyman Bahçeden İç Tatlı Badem", "Peyman Dorleo Kabuklu Antep Fıstığı", "Peyman Çitliyo çeşitleri"], "LABNE": ["Baltali Labne", "Murat Bey Labne", "Pınar Labne", "Sakipağa Labne", "Sütaş Labne", "Yörsan Labne"], "GLUTENSİZ UN": ["Agromica Gıda Nutritender Hindistan Cevizi Unu", "Agromica Gıda Nutritender Kestane Unu", "Ambar Evim Çiğ Karabuğday Unu", "Ankara Halk Ekmek Glutensiz Unu", "Bez gluten Un Karışımı", "Bi-aglut Un", "Doğaçlama Gıda Organik Nohut Filizi Unu", "Dr.Oetker Glutensiz Ekmek Karışımı", "Dr.Oetker Glutensiz Sade Un Karışımı", "Ege Glutensiz Un", "Elisa Gold Glutensiz Un karışımı", "Gluno Pirinç Unu", "Golda Glutensiz Un Karışımı", "Güzel Gıda Badem Unu", "İngro Gıda Glutensiz Un Karışımları", "Kenton Ön Pişirilmiş Fasulye Unu", "Legume Nohut Unu", "Mader Glutensiz Un Karışımı", "Mina Glutensiz Un Karışımı", "Nam Glutensiz Mix Un", "Nog Glutensiz Un", "Nustil Glutensiz Yulaf Unu", "Schar Tüm ürünleri", "Sinangil Glutensiz Unu", "Söke Glutensiz Un", "Yuva Glutensiz Unları", "Wefood Amarant Unu", "Wefood Teff, Teff Unu"], "PEYNİR": ["Altınkılıç Tam Yağlı Olgunlaştırılmış İnek Peyniri", "Arpacı Süt Ürünleri Beyaz Peynir ve Tost peyniri", "Aynes Beyaz ve kaşar peynirleri", "Atatürk Orman Çiftliği tüm ürünleri", "Bahçivan", "Bakraç tüm ürünleri", "Baltali Keçi Peyniri çeşitleri", "Bolana", "Çayirova tüm ürünleri", "Dalgiçlar Tüm ürünleri", "Doğruluk tüm ürünleri", "Eker", "Ekici Peynir krem peyniri dahil tüm ürünleri", "Gelibolu Organik tüm ürünleri", "Gündoğdu Eritme Tost peyniri", "Gürsüt tüm peynir çeşitleri", "İçim Süt Ürünleri (Bisküvili Büyüme Küpü gluten içeriyor)", "itimat Süt Ürünlerinin tüm çeşitleri", "Kaanlar peynirleri", "Karper çeşitleri", "Kay Süt ürünlerinin tüm çeşitleri", "Kebir Süt tüm çeşitleri", "Muratbey tüm ürünleri", "Otat tüm ürünleri", "Özgüllü Süt Ürünlerinin tüm çeşitleri", "Pınar peynir çeşitleri", "President Peynirleri", "Ünal Peynircilik Beyaz Peyniri", "Sakipağa", "Saklı Cennet Tüm Peynir çeşitleri", "Sek tüm ürünleri", "Sütaş (krem peynir hariç)", "Tahsildaroğlu tüm ürünleri", "Tire Süt Kaşar", "Trakya Çiftliği", "Yörsan tüm ürünleri", "Yörükoğlu peynirleri"], "REÇEL": ["Babamın Bahçesi Kumkuat Reçeli", "Babamın Bahçesi Limon Reçeli", "Babamın Bahçesi Portakal Reçeli", "Fiordifrutta Çilek Reçeli", "Gülsan Gıda Reçelleri", "Lütfiye Amasra Reçel ve Marmelatları", "Nar Gourmet Reçel ve Marmelatları", "Organik ve Glutensiz Fiordifrutta çeşitleri", "Kilye", "Koska Organik Reçeller ve Light reçeller", "Naturpy Süt Reçeli", "Olive Farm Reçelleri", "Penguen", "Sade Organik Reçelleri", "Tamek Reçelleri ve Marmelatları", "Yenigün"], "SALÇALAR": ["Akfa", "Dardanel Domates Salçası", "Kilye", "Olca domates ve biber salçası", "Öncü domates, acı ve tatlı biber salçası", "Penguen domates ve biber salçası", "Tamek Domates Salçası", "Tat domates, acı ve tatlı biber salçası", "Trilye", "Tukaş Domates Salçası"], "SÜTLER": ["Aynes", "A.O.Ç. Sütleri", "Bakraç Süt ürünleri", "Baltali Keçi Sütleri", "Çayirova Süt", "Dost Süt ürünleri", "Eker Süt", "İçim Laktozsuz Süt", "İçim Süt", "İtimat", "Özgüllü süt", "Pinar Laktozsuz Süt", "Pinar Süt", "Sakipağa Süt", "Saklı Cennet Keçi Sütü", "Sek Laktozlu Süt", "Sek Laktozsuz Süt", "Sütaş Süt", "Yörsan Süt", "Yörükoğlu Süt"], "ŞEHRİYE": ["Arbella Glutensiz", "Balviten", "Beşler Glutensiz", "Mader", "Schar Glutensiz Şehriye", "Wai wai pirinç Şehriyesi", "Tas Pirinç Şehriyesi"], "TAVUK": ["Beypiliç", "Erpiliç", "Gedik Piliç", "Has Tavuk", "Keskinoğlu", "Mudurnu"], "TEREYAĞI": ["Aynes", "A.O.Ç. Tereyağı", "Bakraç Tereyağı", "Çayirova Tereyağı", "Dalgiçlar tereyağı", "Eker Tereyağı", "Gündoğdu Geleneksel Tereyağı", "Gürsüt Tereyağı", "Kaanlar Tereyağı", "Kebir Tereyağı", "Madalı-Umay Tereyağı", "Muratbey Tereyağı", "Otat Tereyağı", "Özgüllü Tereyağı", "Sakipağa Tereyağı", "Saklı Cennet Keçi Tereyağı", "Sek Tereyağı", "Sütaş Tereyağı", "Tire Süt Tereyağı", "Yörsan Tereyağı", "Yörükoğlu Tereyağı"], "YOĞURT": ["Aynes Yoğurt", "Atatürk Orman Çiftliği Yoğurt", "Bakraç Yoğurt", "Baltali Yoğurt", "Çayirova Yoğurt", "Dalgiçlar Yoğurt", "Danone Yoğurt (ACTİVİA Gluten İÇERİYOR)", "Dost Yoğurt", "Eker Yoğurt", "Gürsüt Yoğurt", "itimat Yoğurt", "Kebir Yoğurt", "Otat Yoğurt", "Özgüllü yoğurt", "Pinar", "Rani Çiftliği Doğal Keçi Yoğurdu", "Sakipağa Yoğurt", "Saklı Cennet Keçi Yoğurdu", "Sek Yoğurt", "Sütaş Yoğurt (meyveli yoğurtlar hariç)", "Yörsan Yoğurt", "Yörükoğlu Yoğurt"], "YULAF": ["Glutensiz Fabrika Yulaf Ezmesi", "Güzel Ada Gıda Yulaf Finlandiya", "Nustil Glutensiz Yulaf Unu", "Nustil Glutensiz Yulaf Ezmesi"]};
+
+const RISKY = ["buğday","bugday","wheat","arpa","barley","çavdar","cavdar","rye",
+  "gluten","malt","malt özü","malt ekstrakt","bulgur","irmik","semolina",
+  "tritikale","seitan","galeta","ekmek kırıntısı"];
+const MAYBE = ["eser miktarda","iz miktarda","aynı hatta","aynı tesiste",
+  "bulaşma","kontaminasyon","gluten içerebilir","buğday içerebilir",
+  "may contain","traces of"];
+
+function normalize(t){
+  return (t||"").toLowerCase()
+    .replace(/ı/g,"i").replace(/ğ/g,"g").replace(/ü/g,"u")
+    .replace(/ş/g,"s").replace(/ö/g,"o").replace(/ç/g,"c")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+}
+
+// Build flat search index
+const INDEX = [];
+Object.entries(PRODUCTS).forEach(([cat,names])=>{
+  names.forEach(name=>{
+    INDEX.push({cat,name,key:normalize(cat+" "+name)});
+  });
+});
+
+function switchTab(id){
+  document.querySelectorAll(".tab").forEach((t,i)=>{
+    const ids=["search","browse","risk"];
+    t.classList.toggle("active",ids[i]===id);
+  });
+  document.querySelectorAll(".panel").forEach(p=>{
+    p.classList.toggle("active",p.id==="panel-"+id);
+  });
+}
+
+// --- Search ---
+function doSearch(q){
+  const el=document.getElementById("searchResults");
+  if(!q||q.length<2){el.innerHTML="";return;}
+  const k=normalize(q);
+  const hits=INDEX.filter(r=>r.key.includes(k)).slice(0,40);
+  if(!hits.length){
+    el.innerHTML='<div class="err-box">❌ Listede bulunamadı. Güvenli kabul etmeyin — etiket ve üretici teyidi gerekir.</div>';
+    return;
+  }
+  el.innerHTML='<div class="count">'+hits.length+' sonuç</div>'+
+    '<div class="card">'+
+    hits.map(r=>'<div class="result-row"><div class="result-cat">'+r.cat+'</div><div class="result-name">✅ '+r.name+'</div></div>').join("")+
+    '</div>'+
+    '<div class="warn-box">⚠️ Yine de ambalajdaki güncel içerik ve alerjen uyarılarını kontrol edin.</div>';
+}
+
+// --- Browse ---
+const catSel=document.getElementById("catSelect");
+Object.keys(PRODUCTS).sort().forEach(c=>{
+  const o=document.createElement("option");o.value=c;o.textContent=c;catSel.appendChild(o);
+});
+
+function loadCategory(){
+  const cat=catSel.value;
+  const prodSel=document.getElementById("prodSelect");
+  const prodLabel=document.getElementById("prodLabel");
+  document.getElementById("productCard").innerHTML="";
+  if(!cat){prodSel.style.display="none";prodLabel.style.display="none";return;}
+  prodSel.innerHTML='<option value="">— Ürün seçin —</option>';
+  (PRODUCTS[cat]||[]).sort().forEach(n=>{
+    const o=document.createElement("option");o.value=n;o.textContent=n;prodSel.appendChild(o);
+  });
+  prodSel.style.display="block";
+  prodLabel.style.display="block";
+}
+
+function showProduct(){
+  const name=document.getElementById("prodSelect").value;
+  const cat=catSel.value;
+  const el=document.getElementById("productCard");
+  if(!name){el.innerHTML="";return;}
+  el.innerHTML='<div class="card">'+
+    '<span class="badge badge-ok">✅ Listede var — uygun</span>'+
+    '<p style="margin-top:10px;font-size:14px"><strong>Kategori:</strong> '+cat+'</p>'+
+    '<p style="margin-top:4px;font-size:14px"><strong>Ürün:</strong> '+name+'</p>'+
+    '<p style="margin-top:4px;font-size:12px;color:#6b7280">Kaynak: Çölyakla Yaşam Derneği</p>'+
+    '</div>'+
+    '<div class="warn-box">⚠️ Ambalajdaki güncel içerik, alerjen ve "eser miktarda gluten/buğday" uyarılarını satın almadan önce kontrol edin.</div>';
+}
+
+// --- Risk ---
+function doRisk(){
+  const text=document.getElementById("ingInput").value;
+  const el=document.getElementById("riskResult");
+  if(!text.trim()){el.innerHTML="";return;}
+  const k=normalize(text);
+  const foundRisky=RISKY.filter(t=>k.includes(normalize(t)));
+  const foundMaybe=MAYBE.filter(t=>k.includes(normalize(t)));
+  const allFound=[...foundRisky,...foundMaybe];
+  if(allFound.length){
+    el.innerHTML='<div class="err-box"><strong>❌ UYGUN DEĞİL</strong> — Riskli ifade tespit edildi.</div>'+
+      '<div class="risk-chips">'+allFound.map(t=>'<span class="chip">'+t+'</span>').join("")+'</div>';
+  } else {
+    el.innerHTML='<div class="warn-box"><strong>⚠️ BELİRSİZ / RİSKLİ</strong><br>Riskli kelime bulunamadı, ancak liste dışı ürünler çölyak için güvenli kabul edilemez. Üretici teyidi alın.</div>';
+  }
+}
+
+// Show install banner on mobile
+if(/android|iphone|ipad|ipod/i.test(navigator.userAgent)){
+  document.getElementById("installBanner").style.display="flex";
+}
+</script>
+</body>
+</html>
