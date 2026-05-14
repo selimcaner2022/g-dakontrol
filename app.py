@@ -294,4 +294,17 @@ if ing:
         st.warning(verdict)
         st.write("Riskli kelime bulunmasa bile liste dışı ürün çölyak için güvenli kabul edilmemelidir.")
 
+st.divider()
+st.subheader("📱 Offline Kullanım")
+st.write("Uygulamayı internetsiz kullanmak için aşağıdan HTML dosyasını indir, telefona kaydet.")
+
+offline_path = Path("gluten_kontrol.html")
+if offline_path.exists():
+    with open(offline_path, "rb") as f:
+        st.download_button(
+            label="📥 Offline HTML Uygulamayı İndir",
+            data=f,
+            file_name="gluten_kontrol.html",
+            mime="text/html"
+
 st.caption("Bu uygulama tıbbi karar yerine geçmez. Çölyakta çok düşük bulaşma riski bile önemli olduğundan belirsiz ürünler uygun kabul edilmez.")
