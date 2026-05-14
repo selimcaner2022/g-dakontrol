@@ -306,5 +306,5 @@ if offline_path.exists():
             data=f,
             file_name="gluten_kontrol.html",
             mime="text/html"
-
+)
 st.caption("Bu uygulama tıbbi karar yerine geçmez. Çölyakta çok düşük bulaşma riski bile önemli olduğundan belirsiz ürünler uygun kabul edilmez.")
